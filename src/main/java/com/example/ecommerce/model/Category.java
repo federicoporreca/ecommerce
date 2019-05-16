@@ -1,4 +1,4 @@
-package com.example.application.model;
+package com.example.ecommerce.model;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import javax.persistence.OneToMany;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Null;
 
-import com.example.application.validation.constraints.ValidParent;
+import com.example.ecommerce.validation.constraints.ValidParent;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;

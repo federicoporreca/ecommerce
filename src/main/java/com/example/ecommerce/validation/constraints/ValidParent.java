@@ -1,4 +1,4 @@
-package com.example.application.validation.constraints;
+package com.example.ecommerce.validation.constraints;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 import javax.validation.Constraint;
 import javax.validation.Payload;
 
-import com.example.application.validation.ParentValidator;
+import com.example.ecommerce.validation.ParentValidator;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

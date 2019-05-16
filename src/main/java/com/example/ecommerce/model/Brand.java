@@ -1,4 +1,4 @@
-package com.example.application.model;
+package com.example.ecommerce.model;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

@@ -1,10 +1,10 @@
-package com.example.application.repositories;
+package com.example.ecommerce.repositories;
 
 import java.util.List;
 
 import org.springframework.data.repository.CrudRepository;
 
-import com.example.application.model.Category;
+import com.example.ecommerce.model.Category;
 
 public interface CategoryRepository extends CrudRepository<Category, Long> {
 

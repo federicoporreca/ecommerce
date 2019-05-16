@@ -1,8 +1,8 @@
-package com.example.application.repositories;
+package com.example.ecommerce.repositories;
 
 import org.springframework.data.repository.CrudRepository;
 
-import com.example.application.model.Item;
+import com.example.ecommerce.model.Item;
 
 public interface ItemRepository extends CrudRepository<Item, Long> {
 

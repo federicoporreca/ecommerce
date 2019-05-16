@@ -1,4 +1,4 @@
-package com.example.application.controllers.rest;
+package com.example.ecommerce.controllers.rest;
 
 import java.util.Optional;
 
@@ -18,9 +18,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.application.model.Category;
-import com.example.application.repositories.CategoryRepository;
-import com.example.application.validation.ParentValidator;
+import com.example.ecommerce.model.Category;
+import com.example.ecommerce.repositories.CategoryRepository;
+import com.example.ecommerce.validation.ParentValidator;
 
 @RestController
 @RequestMapping("/categories")

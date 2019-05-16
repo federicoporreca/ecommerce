@@ -1,4 +1,4 @@
-package com.example.application.controllers.rest;
+package com.example.ecommerce.controllers.rest;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.application.model.Brand;
-import com.example.application.model.Item;
-import com.example.application.repositories.BrandRepository;
-import com.example.application.repositories.CategoryRepository;
-import com.example.application.repositories.ItemRepository;
+import com.example.ecommerce.model.Brand;
+import com.example.ecommerce.model.Item;
+import com.example.ecommerce.repositories.BrandRepository;
+import com.example.ecommerce.repositories.CategoryRepository;
+import com.example.ecommerce.repositories.ItemRepository;
 
 @RestController
 @RequestMapping("/items")

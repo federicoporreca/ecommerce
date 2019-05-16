@@ -1,4 +1,4 @@
-package com.example.application.model;
+package com.example.ecommerce.model;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 
-import com.example.application.validation.constraints.ValidCategory;
+import com.example.ecommerce.validation.constraints.ValidCategory;
 
 import lombok.Data;
 

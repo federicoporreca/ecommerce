@@ -1,4 +1,4 @@
-package com.example.application.validation;
+package com.example.ecommerce.validation;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
@@ -6,9 +6,9 @@ import javax.validation.ConstraintValidatorContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.example.application.model.Category;
-import com.example.application.repositories.CategoryRepository;
-import com.example.application.validation.constraints.ValidParent;
+import com.example.ecommerce.model.Category;
+import com.example.ecommerce.repositories.CategoryRepository;
+import com.example.ecommerce.validation.constraints.ValidParent;
 
 @Component
 public class ParentValidator implements ConstraintValidator<ValidParent, Category> {
