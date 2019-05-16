@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="ISO-8859-1">
+<title>E-commerce: Console</title>
+</head>
+<body>
+    <div th:fragment="level">
+        <ul>
+            <li th:each="category : ${categories}">
+            <span th:text="${category.name}"></span>
+                <div th:include="this :: level" th:with="categories=${category.children}"></div>
+            </li>
+        </ul> 
+    </div>
+    <form th:action="@{/categories}" th:object="${category}" method="post">
+    	<p>Name: <input type="text" th:field="*{name}" /></p>
+        <input type="submit" value="Submit" />
+    </form>
+</body>
+</html>
