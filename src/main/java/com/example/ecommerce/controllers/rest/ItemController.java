@@ -50,6 +50,11 @@ public class ItemController {
 		return itemRepository.save(item);
 	}
 	
+	@GetMapping
+	public Iterable<Item> getItems() {
+		return itemRepository.findAll();
+	}
+	
 	@GetMapping("/{id}")
 	public ResponseEntity<Item> getItem(@PathVariable Long id) {
 		Optional<Item> optionalItem = itemRepository.findById(id);
