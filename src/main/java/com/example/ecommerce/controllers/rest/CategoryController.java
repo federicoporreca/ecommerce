@@ -35,12 +35,12 @@ public class CategoryController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public Category createCategory(@Valid @RequestBody Category category) {
-		category = categoryRepository.save(category);
-		// if parent is not null, retrieve its data
-		if (category.getParent() != null) {
-			category.setParent(categoryRepository.findById(category.getParent().getId()).get());
-		}
-		return category;
+		return categoryRepository.save(category);
+	}
+	
+	@GetMapping
+	public Iterable<Category> getCategories() {
+		return categoryRepository.findByParentIsNull();
 	}
 	
 	@GetMapping("/{id}")

@@ -14,7 +14,8 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Null;
 
 import com.example.ecommerce.validation.constraints.ValidParent;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import lombok.Data;
 
@@ -32,11 +33,12 @@ public class Category {
 	
 	@ManyToOne
 	@ValidParent
+	@JsonProperty(access = Access.WRITE_ONLY)
 	private Category parent;
 	
 	@OneToMany(cascade = CascadeType.ALL)
 	@JoinColumn(name = "parent_id")
-	@JsonIgnore
+	@JsonProperty(access = Access.READ_ONLY)
 	private List<Category> children;
 
 	@Override
