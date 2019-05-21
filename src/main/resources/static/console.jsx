@@ -66,17 +66,14 @@ class CategoryConsole extends React.Component {
     }
 
     handleToggleAddModal(category) {
-        console.log(category);
         this.setState({ showAddModal: !this.state.showAddModal, selectedCategory: category });
     }
 
     handleToggleDeleteModal(category) {
-        console.log(category);
         this.setState({ showDeleteModal: !this.state.showDeleteModal, selectedCategory: category });
     }
 
     handleAdd(category) {
-        console.log(category);
         fetch("http://localhost:8080/categories/", { method: "POST", headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(category) })
             .then(this.fetchData);
         this.handleToggleAddModal({});
@@ -199,7 +196,7 @@ class AddModal extends React.Component {
                 </B.Modal.Body>
                 <B.Modal.Footer>
                     <B.Button onClick={() => this.props.onHide({})}>Cancel</B.Button>
-                    <B.Button onClick={() => this.props.onAdd({ name: this.state.name, parent: this.props.parent.id })}>Save</B.Button>
+                    <B.Button onClick={() => this.props.onAdd({ name: this.state.name, parent: { id: this.props.parent.id } })}>Save</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
         );
