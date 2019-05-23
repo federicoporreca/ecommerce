@@ -17,7 +17,7 @@ import lombok.Data;
 @Entity
 public class Price {
 	
-	private enum Currency {
+	public enum Currency {
 		EUR, USD
 	}
 
