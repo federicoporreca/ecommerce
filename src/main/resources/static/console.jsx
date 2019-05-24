@@ -4,8 +4,41 @@ const url = "http://localhost:8080";
 class Console extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { section: "Categories" };
+        this.state = {
+            section: "Items",
+            categories: []
+        };
         this.handleSwitch = this.handleSwitch.bind(this);
+    }
+
+    componentDidMount() {
+        this.fetchCategories();
+    }
+
+    fetchCategories() {
+        fetch(url + "/categories")
+            .then(response => response.json())
+            .then(categories => {
+                categories.forEach(category => this.addParent(category, true));
+                return categories;
+            })
+            .then(categories => { this.setState({ categories: categories }) });
+    }
+    
+    addParent(category, isRoot) {
+        if (isRoot) {
+            category.parent = { id: 0 };
+        }
+        if (category.children.length > 0) {
+            category.children.forEach(child => {
+                child.parent = category;
+                this.addParent(child, false);
+            });
+        }
+    }
+
+    handleChange() {
+        this.fetchCategories();
     }
 
     handleSwitch(section) {
@@ -16,10 +49,10 @@ class Console extends React.Component {
         let console;
         switch (this.state.section) {
             case "Categories":
-                console = <CategoryConsole />;
+                console = <CategoryConsole categories={this.state.categories} onChange={this.handleChange} />;
                 break;
             case "Items":
-                console = <ItemConsole />;
+                console = <ItemConsole categories={this.state.categories} onChange={this.handleChange} />;
         }
         return (
             <React.Fragment>
@@ -48,10 +81,10 @@ class CategoryConsole extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            categories: [],
-            categoryId: "",
+            categoryId: 0,
             categoryName: "",
             categoryParent: {},
+            categoryParentId: 0,
             showAddModal: false,
             showEditModal: false,
             showDeleteModal: false
@@ -59,63 +92,54 @@ class CategoryConsole extends React.Component {
         this.handleToggleAddModal = this.handleToggleAddModal.bind(this);
         this.handleToggleEditModal = this.handleToggleEditModal.bind(this);
         this.handleToggleDeleteModal = this.handleToggleDeleteModal.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.handleAdd = this.handleAdd.bind(this);
+        this.handleEdit = this.handleEdit.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
-        this.fetchCategories = this.fetchCategories.bind(this);
-    }
-
-    componentDidMount() {
-        this.fetchCategories();
-    }
-
-    fetchCategories() {
-        fetch(url + "/categories")
-            .then(response => response.json())
-            .then(categories => {
-                categories.forEach(category => this.addParent(category, true));
-                return categories;
-            })
-            .then(categories => { this.setState({ categories: categories }) });
-    }
-
-    addParent(category, isRoot) {
-        if (isRoot) {
-            category.parent = {};
-        }
-        if (category.children.length > 0) {
-            category.children.forEach(child => {
-                child.parent = category;
-                this.addParent(child, false);
-            });
-        }
     }
 
     handleToggleAddModal(parent) {
-        this.setState({ showAddModal: !this.state.showAddModal, categoryParent: parent });
+        this.setState(state => ({ showAddModal: !state.showAddModal, categoryName: "", categoryParent: parent }));
     }
 
     handleToggleEditModal(category) {
-        this.setState({ showEditModal: !this.state.showEditModal, categoryName: category.name, categoryParent: category.parent });
+        this.setState(state => ({ showEditModal: !state.showEditModal, categoryId: category.id, categoryName: category.name, categoryParentId: category.parent.id }));
     }
 
     handleToggleDeleteModal(category) {
-        this.setState({ showDeleteModal: !this.state.showDeleteModal, selectedCategory: category });
+        this.setState(state => ({ showDeleteModal: !state.showDeleteModal, categoryId: category.id, categoryName: category.name }));
     }
 
     handleChange(event) {
         this.setState({ [event.target.name]: event.target.value });
     }
 
-    handleAdd(category) {
+    handleAdd() {
+        let category = { name: this.state.categoryName };
+        if (this.state.categoryParent.id) {
+            category.parent = {};
+            category.parent.id = this.state.categoryParent.id;
+        }
         fetch(url + "/categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(category) })
-            .then(this.fetchCategories);
-        this.handleToggleAddModal({ parent: {} });
+            .then(this.props.onChange);
+        this.handleToggleAddModal({});
     }
 
-    handleDelete(category) {
-        fetch(url + "/categories/" + category.id, { method: "DELETE" })
-            .then(this.fetchCategories);
-        this.handleToggleDeleteModal({ parent: {} });
+    handleEdit() {
+        let category = { name: this.state.categoryName };
+        if (this.state.categoryParentId != 0) {
+            category.parent = {};
+            category.parent.id = this.state.categoryParentId;
+        }
+        fetch(url + "/categories/" + this.state.categoryId, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(category) })
+            .then(this.props.onChange);
+        this.handleToggleEditModal({ id: 0, name: "", parent: {} });
+    }
+
+    handleDelete() {
+        fetch(url + "/categories/" + this.state.categoryId, { method: "DELETE" })
+            .then(this.props.onChange);
+        this.handleToggleDeleteModal({ id: 0, name: "" });
     }
 
     render() {
@@ -123,13 +147,13 @@ class CategoryConsole extends React.Component {
             <B.Container fluid>
                 <B.Row>
                     <B.Col className="mt-3">
-                        <B.Button onClick={() => this.handleToggleAddModal({ parent: {} })}>Add root</B.Button>
+                        <B.Button onClick={() => this.handleToggleAddModal({})}>Add root</B.Button>
                     </B.Col>
                 </B.Row>
                 <B.Row>
                     <B.Col className="mt-3">
                         <CategoryList
-                            categories={this.state.categories}
+                            categories={this.props.categories}
                             onAdd={this.handleToggleAddModal}
                             onEdit={this.handleToggleEditModal}
                             onDelete={this.handleToggleDeleteModal} />
@@ -137,19 +161,22 @@ class CategoryConsole extends React.Component {
                 </B.Row>
                 <AddCategoryModal
                     show={this.state.showAddModal}
+                    categoryName={this.state.categoryName}
                     categoryParent={this.state.categoryParent}
+                    onChange={this.handleChange}
                     onHide={this.handleToggleAddModal}
                     onConfirm={this.handleAdd} />
                 <EditCategoryModal
                     show={this.state.showEditModal}
                     categoryName={this.state.categoryName}
-                    categoryParent={this.state.categoryParent}
-                    categories={this.state.categories}
+                    categoryParentId={this.state.categoryParentId}
+                    categories={this.props.categories}
+                    onChange={this.handleChange}
                     onHide={this.handleToggleEditModal}
-                    onChange={this.handleChange} />
+                    onConfirm={this.handleEdit} />
                 <DeleteCategoryModal
                     show={this.state.showDeleteModal}
-                    category={this.state.selectedCategory}
+                    categoryName={this.state.categoryName}
                     onHide={this.handleToggleDeleteModal}
                     onConfirm={this.handleDelete} />
             </B.Container>
@@ -215,22 +242,48 @@ class ButtonGroup extends React.Component {
 class AddCategoryModal extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { categoryName: "" };
         this.handleChange = this.handleChange.bind(this);
-        this.submitAndClear = this.submitAndClear.bind(this);
     }
 
     handleChange(event) {
-        this.setState({ categoryName: event.target.value });
+        this.props.onChange(event);
     }
 
-    submitAndClear() {
-        if (this.props.parent.id == null) {
-            this.props.onConfirm({ name: this.state.name });
-        } else {
-            this.props.onConfirm({ name: this.state.name, parent: { id: this.props.parent.id } });
-        }
-        this.setState({ name: "" });
+    render() {
+        return (
+            <B.Modal show={this.props.show} onHide={() => this.props.onHide({})}>
+                <B.Modal.Header closeButton>
+                    <B.Modal.Title>Add category</B.Modal.Title>
+                </B.Modal.Header>
+                <B.Modal.Body>
+                    <B.Form>
+                        <B.FormGroup>
+                            <B.Form.Label>Name</B.Form.Label>
+                            <B.Form.Control type="text" name="categoryName" value={this.props.categoryName} onChange={this.handleChange} />
+                        </B.FormGroup>
+                        <B.FormGroup>
+                            <B.Form.Label>Parent</B.Form.Label>
+                            <B.Form.Control plaintext readOnly defaultValue={this.props.categoryParent.name}></B.Form.Control>
+                        </B.FormGroup>
+                    </B.Form>
+                </B.Modal.Body>
+                <B.Modal.Footer>
+                    <B.Button onClick={() => this.props.onHide({})}>Cancel</B.Button>
+                    <B.Button onClick={this.props.onConfirm}>Save</B.Button>
+                </B.Modal.Footer>
+            </B.Modal>
+        );
+    }
+}
+
+class EditCategoryModal extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(event) {
+        this.props.onChange(event);
     }
 
     renderChildren(category) {
@@ -245,45 +298,7 @@ class AddCategoryModal extends React.Component {
 
     render() {
         return (
-            <B.Modal show={this.props.show} onHide={() => this.props.onHide({ parent: {} })}>
-                <B.Modal.Header closeButton>
-                    <B.Modal.Title>Add category</B.Modal.Title>
-                </B.Modal.Header>
-                <B.Modal.Body>
-                    <B.Form>
-                        <B.FormGroup>
-                            <B.Form.Label>Name</B.Form.Label>
-                            <B.Form.Control type="text" value={this.state.name} onChange={this.handleChange} />
-                        </B.FormGroup>
-                        <B.FormGroup>
-                            <B.Form.Label>Parent</B.Form.Label>
-                            <B.Form.Control plaintext readOnly defaultValue={this.props.parent.name}></B.Form.Control>
-                        </B.FormGroup>
-                    </B.Form>
-                </B.Modal.Body>
-                <B.Modal.Footer>
-                    <B.Button onClick={() => this.props.onHide({ parent: {} })}>Cancel</B.Button>
-                    <B.Button onClick={this.submitAndClear}>Save</B.Button>
-                </B.Modal.Footer>
-            </B.Modal>
-        );
-    }
-}
-
-class EditCategoryModal extends React.Component {
-    renderChildren(category) {
-        return (
-            category.children.map(child =>
-                <React.Fragment key={child.id}>
-                    <option value={child}>{child.name}</option>
-                    {this.renderChildren(child)}
-                </React.Fragment>)
-        );
-    }
-
-    render() {
-        return (
-            <B.Modal show={this.props.show} onHide={() => this.props.onHide({ parent: {} })}>
+            <B.Modal show={this.props.show} onHide={() => this.props.onHide({ id: 0, name: "", parent: {} })}>
                 <B.Modal.Header closeButton>
                     <B.Modal.Title>Edit category</B.Modal.Title>
                 </B.Modal.Header>
@@ -291,15 +306,15 @@ class EditCategoryModal extends React.Component {
                     <B.Form>
                         <B.FormGroup>
                             <B.Form.Label>Name</B.Form.Label>
-                            <B.Form.Control type="text" name="name" value={this.props.categoryName} onChange={this.onChange} />
+                            <B.Form.Control type="text" name="categoryName" value={this.props.categoryName} onChange={this.handleChange} />
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Parent</B.Form.Label>
-                            <B.Form.Control as="select" name="parent" value={this.props.categoryParent} onChange={this.onChange}>
-                                <option></option>
+                            <B.Form.Control as="select" name="categoryParentId" value={this.props.categoryParentId} onChange={this.handleChange}>
+                                <option value="0"></option>
                                 {this.props.categories.map(category =>
                                     <React.Fragment key={category.id}>
-                                        <option value={category}>{category.name}</option>
+                                        <option value={category.id}>{category.name}</option>
                                         {this.renderChildren(category)}
                                     </React.Fragment>)}
                             </B.Form.Control>
@@ -307,8 +322,8 @@ class EditCategoryModal extends React.Component {
                     </B.Form>
                 </B.Modal.Body>
                 <B.Modal.Footer>
-                    <B.Button onClick={() => this.props.onHide({ parent: {} })}>Cancel</B.Button>
-                    <B.Button>Save</B.Button>
+                    <B.Button onClick={() => this.props.onHide({ id: 0, name: "", parent: {} })}>Cancel</B.Button>
+                    <B.Button onClick={this.props.onConfirm}>Save</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
         );
@@ -318,14 +333,14 @@ class EditCategoryModal extends React.Component {
 class DeleteCategoryModal extends React.Component {
     render() {
         return (
-            <B.Modal show={this.props.show} onHide={() => this.props.onHide({ parent: {} })}>
+            <B.Modal show={this.props.show} onHide={() => this.props.onHide({ id: 0, name: "" })}>
                 <B.Modal.Header closeButton>
                     <B.Modal.Title>Delete category</B.Modal.Title>
                 </B.Modal.Header>
-                <B.Modal.Body>Are you sure you want to delete "{this.props.category.name}"?</B.Modal.Body>
+                <B.Modal.Body>Are you sure you want to delete "{this.props.categoryName}"?</B.Modal.Body>
                 <B.Modal.Footer>
-                    <B.Button onClick={() => this.props.onHide({ parent: {} })}>Cancel</B.Button>
-                    <B.Button variant="danger" onClick={() => this.props.onConfirm(this.props.category)}>Delete</B.Button>
+                    <B.Button onClick={() => this.props.onHide({ id: 0, name: "" })}>Cancel</B.Button>
+                    <B.Button variant="danger" onClick={this.props.onConfirm}>Delete</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
         );
@@ -339,11 +354,20 @@ class ItemConsole extends React.Component {
             items: [],
             currencies: [],
             selectedItem: { brand: {} },
-            showAddItemModal: false,
-            showDeleteItemModal: false
+            itemId: 0,
+            itemBrandName: "",
+            itemName: "",
+            itemPrices: [],
+            itemEan: "",
+            itemImageUrl: "",
+            itemCategoryId: 0,
+            showAddModal: false,
+            showDeleteModal: false
         }
-        this.handleToggleAddItemModal = this.handleToggleAddItemModal.bind(this);
-        this.handleToggleDeleteItemModal = this.handleToggleDeleteItemModal.bind(this);
+        this.fetchItems = this.fetchItems.bind(this);
+        this.handleToggleAddModal = this.handleToggleAddModal.bind(this);
+        this.handleToggleDeleteModal = this.handleToggleDeleteModal.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
     }
 
@@ -364,18 +388,22 @@ class ItemConsole extends React.Component {
             .then(currencies => this.setState({ currencies: currencies }));
     }
 
-    handleToggleAddItemModal() {
-        this.setState({ showAddItemModal: !this.state.showAddItemModal });
+    handleToggleAddModal() {
+        this.setState(state => ({ showAddModal: !state.showAddModal }));
     }
 
-    handleToggleDeleteItemModal(item) {
-        this.setState({ showDeleteItemModal: !this.state.showDeleteItemModal, selectedItem: item });
+    handleToggleDeleteModal(item) {
+        this.setState(state => ({ showDeleteModal: !state.showDeleteModal, itemId: item.id, itemBrandName: item.brand.name, itemName: item.name }));
     }
 
-    handleDelete(item) {
-        fetch(url + "/items/" + item.id, { method: "DELETE" })
+    handleChange(event) {
+        this.setState({ [event.target.name]: event.target.value });
+    }
+
+    handleDelete() {
+        fetch(url + "/items/" + this.state.itemId, { method: "DELETE" })
             .then(this.fetchItems);
-        this.handleToggleDeleteItemModal({ brand: {} });
+        this.handleToggleDeleteModal({ id: 0, brand: {name: ""}, name: "" });
     }
 
     render() {
@@ -383,22 +411,31 @@ class ItemConsole extends React.Component {
             <B.Container fluid>
                 <B.Row>
                     <B.Col className="mt-3">
-                        <B.Button onClick={this.handleToggleAddItemModal}>Add</B.Button>
+                        <B.Button onClick={this.handleToggleAddModal}>Add</B.Button>
                     </B.Col>
                 </B.Row>
                 <B.Row>
                     <B.Col className="mt-3">
-                        <ItemTable items={this.state.items} onDelete={this.handleToggleDeleteItemModal} />
+                        <ItemTable items={this.state.items} onDelete={this.handleToggleDeleteModal} />
                     </B.Col>
                 </B.Row>
                 <AddItemModal
-                    show={this.state.showAddItemModal}
+                    show={this.state.showAddModal}
+                    itemBrand={this.state.itemBrand}
+                    itemName={this.state.itemName}
+                    itemPrices={this.state.itemPrices}
+                    itemEan={this.state.itemEan}
+                    itemImageUrl={this.state.itemImageUrl}
+                    itemCategoryId={this.state.itemCategoryId}
                     currencies={this.state.currencies}
-                    onHide={this.handleToggleAddItemModal} />
+                    categories={this.props.categories}
+                    onChange={this.handleChange}
+                    onHide={this.handleToggleAddModal} />
                 <DeleteItemModal
-                    show={this.state.showDeleteItemModal}
-                    item={this.state.selectedItem}
-                    onHide={this.handleToggleDeleteItemModal}
+                    show={this.state.showDeleteModal}
+                    itemBrandName={this.state.itemBrandName}
+                    itemName={this.state.itemName}
+                    onHide={this.handleToggleDeleteModal}
                     onConfirm={this.handleDelete} />
             </B.Container>
         );
@@ -414,6 +451,7 @@ class ItemTable extends React.Component {
                         <th>Brand</th>
                         <th>Name</th>
                         <th>EAN</th>
+                        <th>Image URL</th>
                         <th>Category</th>
                         <th></th>
                     </tr>
@@ -424,6 +462,7 @@ class ItemTable extends React.Component {
                             <td>{item.brand.name}</td>
                             <td>{item.name}</td>
                             <td>{item.ean}</td>
+                            <td>{item.imageUrl}</td>
                             <td>{item.category.name}</td>
                             <td style={{ whiteSpace: "nowrap", width: "0" }}>
                                 <B.Button size="sm" style={{ marginRight: 10 }}>Edit</B.Button>
@@ -439,19 +478,12 @@ class ItemTable extends React.Component {
 class AddItemModal extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            brand: "",
-            name: "",
-            prices: [],
-            ean: "",
-            category: {}
-        }
         this.handleChange = this.handleChange.bind(this);
         this.handleAddPrice = this.handleAddPrice.bind(this);
     }
 
     handleChange(event) {
-        this.setState({ [event.target.name]: event.target.value });
+        this.props.onChange(event);
     }
 
     handleAddPrice(price) {
@@ -468,13 +500,29 @@ class AddItemModal extends React.Component {
                     <B.Form>
                         <B.FormGroup>
                             <B.Form.Label>Brand</B.Form.Label>
-                            <B.Form.Control type="text" name="brand" value={this.state.brand} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemBrandName" value={this.props.itemBrand} onChange={this.handleChange} />
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Name</B.Form.Label>
-                            <B.Form.Control type="text" name="name" value={this.state.name} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemName" value={this.props.itemName} onChange={this.handleChange} />
                         </B.FormGroup>
-                        <PriceFormGroup prices={this.state.prices} currencies={this.props.currencies} onAdd={this.handleAddPrice} />
+                        <PriceFormGroup prices={this.props.itemPrices} currencies={this.props.currencies} onAdd={this.handleAddPrice} />
+                        <B.FormGroup>
+                            <B.Form.Label>EAN</B.Form.Label>
+                            <B.Form.Control type="text" name="itemEan" value={this.props.itemEan} onChange={this.handleChange} />
+                        </B.FormGroup>
+                        <B.FormGroup>
+                            <B.Form.Label>Image URL</B.Form.Label>
+                            <B.Form.Control type="text" name="itemImageUrl" value={this.props.itemImageUrl} onChange={this.handleChange} />
+                        </B.FormGroup>
+                        <B.FormGroup>
+                            <B.Form.Label>Category</B.Form.Label>
+                            <B.Form.Control as="select" name="itemCategoryId" value={this.props.itemCategoryId} onChange={this.handleChange}>
+                                <option value="0"></option>
+                                {this.props.categories.map(category =>
+                                    <option key={category.id} value={category.id}>{category.name}</option>)}
+                            </B.Form.Control>
+                        </B.FormGroup>
                     </B.Form>
                 </B.Modal.Body>
                 <B.Modal.Footer>
@@ -538,14 +586,14 @@ class PriceFormGroup extends React.Component {
 class DeleteItemModal extends React.Component {
     render() {
         return (
-            <B.Modal show={this.props.show} onHide={() => this.props.onHide({ brand: {} })}>
+            <B.Modal show={this.props.show} onHide={() => this.props.onHide({ id: 0, brand: {name: ""}, name: "" })}>
                 <B.Modal.Header closeButton>
                     <B.Modal.Title>Delete item</B.Modal.Title>
                 </B.Modal.Header>
-                <B.Modal.Body>Are you sure you want to delete "{this.props.item.brand.name} {this.props.item.name}"?</B.Modal.Body>
+                <B.Modal.Body>Are you sure you want to delete "{this.props.itemBrandName} {this.props.itemName}"?</B.Modal.Body>
                 <B.Modal.Footer>
-                    <B.Button onClick={() => this.props.onHide({ brand: {} })}>Cancel</B.Button>
-                    <B.Button variant="danger" onClick={() => this.props.onConfirm(this.props.item)}>Delete</B.Button>
+                    <B.Button onClick={() => this.props.onHide({ id: 0, brand: {name: ""}, name: "" })}>Cancel</B.Button>
+                    <B.Button variant="danger" onClick={this.props.onConfirm}>Delete</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
         );

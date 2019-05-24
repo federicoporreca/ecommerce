@@ -13,7 +13,9 @@ import javax.persistence.OneToMany;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Null;
 
-import com.example.ecommerce.validation.constraints.ValidParent;
+import com.example.ecommerce.validation.constraints.ValidCategoryPatch;
+import com.example.ecommerce.validation.constraints.ValidParentCategory;
+import com.example.ecommerce.validation.groups.CategoryPatch;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
@@ -21,6 +23,7 @@ import lombok.Data;
 
 @Data
 @Entity
+@ValidCategoryPatch(groups = CategoryPatch.class)
 public class Category {
 	
 	@Id
@@ -32,7 +35,7 @@ public class Category {
 	private String name;
 	
 	@ManyToOne
-	@ValidParent
+	@ValidParentCategory
 	@JsonProperty(access = Access.WRITE_ONLY)
 	private Category parent;
 	

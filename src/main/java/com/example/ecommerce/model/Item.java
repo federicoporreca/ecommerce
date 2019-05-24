@@ -29,7 +29,7 @@ public class Item {
 	@Null
 	private Long id;
 	
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne(cascade = CascadeType.PERSIST)
 	@NotNull
 	@Valid
 	private Brand brand;

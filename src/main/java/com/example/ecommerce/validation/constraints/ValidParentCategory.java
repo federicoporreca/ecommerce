@@ -8,12 +8,12 @@ import java.lang.annotation.Target;
 import javax.validation.Constraint;
 import javax.validation.Payload;
 
-import com.example.ecommerce.validation.ParentValidator;
+import com.example.ecommerce.validation.ParentCategoryValidator;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy=ParentValidator.class)
-public @interface ValidParent {
+@Constraint(validatedBy=ParentCategoryValidator.class)
+public @interface ValidParentCategory {
 	String message() default "Invalid parent category";
 	Class<?>[] groups() default {};
 	Class<? extends Payload>[] payload() default {};

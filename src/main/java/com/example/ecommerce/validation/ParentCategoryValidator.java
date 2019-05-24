@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 
 import com.example.ecommerce.model.Category;
 import com.example.ecommerce.repositories.CategoryRepository;
-import com.example.ecommerce.validation.constraints.ValidParent;
+import com.example.ecommerce.validation.constraints.ValidParentCategory;
 
 @Component
-public class ParentValidator implements ConstraintValidator<ValidParent, Category> {
+public class ParentCategoryValidator implements ConstraintValidator<ValidParentCategory, Category> {
 	
 	@Autowired
 	CategoryRepository categoryRepository;
