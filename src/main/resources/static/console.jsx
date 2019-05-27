@@ -24,7 +24,7 @@ class Console extends React.Component {
             })
             .then(categories => { this.setState({ categories: categories }) });
     }
-    
+
     addParent(category, isRoot) {
         if (isRoot) {
             category.parent = { id: 0 };
@@ -357,7 +357,8 @@ class ItemConsole extends React.Component {
             itemId: 0,
             itemBrandName: "",
             itemName: "",
-            itemPrices: [],
+            itemPriceInEur: "",
+            itemPriceInUsd: "",
             itemEan: "",
             itemImageUrl: "",
             itemCategoryId: 0,
@@ -368,6 +369,7 @@ class ItemConsole extends React.Component {
         this.handleToggleAddModal = this.handleToggleAddModal.bind(this);
         this.handleToggleDeleteModal = this.handleToggleDeleteModal.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleAdd = this.handleAdd.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
     }
 
@@ -400,10 +402,13 @@ class ItemConsole extends React.Component {
         this.setState({ [event.target.name]: event.target.value });
     }
 
+    handleAdd() {
+    }
+
     handleDelete() {
         fetch(url + "/items/" + this.state.itemId, { method: "DELETE" })
             .then(this.fetchItems);
-        this.handleToggleDeleteModal({ id: 0, brand: {name: ""}, name: "" });
+        this.handleToggleDeleteModal({ id: 0, brand: { name: "" }, name: "" });
     }
 
     render() {
@@ -423,13 +428,14 @@ class ItemConsole extends React.Component {
                     show={this.state.showAddModal}
                     itemBrand={this.state.itemBrand}
                     itemName={this.state.itemName}
-                    itemPrices={this.state.itemPrices}
+                    itemPriceInEur={this.state.itemPriceInEur}
+                    itemPriceInUsd={this.state.itemPriceInUsd}
                     itemEan={this.state.itemEan}
                     itemImageUrl={this.state.itemImageUrl}
                     itemCategoryId={this.state.itemCategoryId}
-                    currencies={this.state.currencies}
                     categories={this.props.categories}
                     onChange={this.handleChange}
+                    onConfirm={this.handleAdd}
                     onHide={this.handleToggleAddModal} />
                 <DeleteItemModal
                     show={this.state.showDeleteModal}
@@ -479,15 +485,10 @@ class AddItemModal extends React.Component {
     constructor(props) {
         super(props);
         this.handleChange = this.handleChange.bind(this);
-        this.handleAddPrice = this.handleAddPrice.bind(this);
     }
 
     handleChange(event) {
         this.props.onChange(event);
-    }
-
-    handleAddPrice(price) {
-        this.setState({ prices: this.state.prices.push(price) });
     }
 
     render() {
@@ -500,24 +501,42 @@ class AddItemModal extends React.Component {
                     <B.Form>
                         <B.FormGroup>
                             <B.Form.Label>Brand</B.Form.Label>
-                            <B.Form.Control type="text" name="itemBrandName" value={this.props.itemBrand} onChange={this.handleChange} />
+                            <B.Form.Control type="text" required name="itemBrandName" value={this.props.itemBrand} onChange={this.handleChange} />
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Name</B.Form.Label>
-                            <B.Form.Control type="text" name="itemName" value={this.props.itemName} onChange={this.handleChange} />
+                            <B.Form.Control type="text" required name="itemName" value={this.props.itemName} onChange={this.handleChange} />
                         </B.FormGroup>
-                        <PriceFormGroup prices={this.props.itemPrices} currencies={this.props.currencies} onAdd={this.handleAddPrice} />
+                        <B.FormGroup>
+                            <B.Form.Label>Price</B.Form.Label>
+                            <B.Form.Row className="mb-2">
+                                <B.Col>
+                                    <B.Form.Control type="text" required className="text-right" name="itemPriceInEur" value={this.props.itemPriceInEur} onChange={this.handleChange} />
+                                </B.Col>
+                                <B.Col>
+                                    <B.Form.Control plaintext readOnly defaultValue="EUR" />
+                                </B.Col>
+                            </B.Form.Row>
+                            <B.Form.Row>
+                                <B.Col>
+                                    <B.Form.Control type="text" required className="text-right" name="itemPriceInUsd" value={this.props.itemPriceInUsd} onChange={this.handleChange} />
+                                </B.Col>
+                                <B.Col>
+                                    <B.Form.Control plaintext readOnly defaultValue="USD" />
+                                </B.Col>
+                            </B.Form.Row>
+                        </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>EAN</B.Form.Label>
-                            <B.Form.Control type="text" name="itemEan" value={this.props.itemEan} onChange={this.handleChange} />
+                            <B.Form.Control type="text" required name="itemEan" value={this.props.itemEan} onChange={this.handleChange} />
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Image URL</B.Form.Label>
-                            <B.Form.Control type="text" name="itemImageUrl" value={this.props.itemImageUrl} onChange={this.handleChange} />
+                            <B.Form.Control type="text" required name="itemImageUrl" value={this.props.itemImageUrl} onChange={this.handleChange} />
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Category</B.Form.Label>
-                            <B.Form.Control as="select" name="itemCategoryId" value={this.props.itemCategoryId} onChange={this.handleChange}>
+                            <B.Form.Control as="select" required name="itemCategoryId" value={this.props.itemCategoryId} onChange={this.handleChange}>
                                 <option value="0"></option>
                                 {this.props.categories.map(category =>
                                     <option key={category.id} value={category.id}>{category.name}</option>)}
@@ -527,58 +546,9 @@ class AddItemModal extends React.Component {
                 </B.Modal.Body>
                 <B.Modal.Footer>
                     <B.Button onClick={this.props.onHide}>Cancel</B.Button>
-                    <B.Button>Save</B.Button>
+                    <B.Button type="submit">Save</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
-        );
-    }
-}
-
-class PriceFormGroup extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            value: "",
-            currency: ""
-        };
-        this.handleChange = this.handleChange.bind(this);
-    }
-
-    handleChange(event) {
-        this.setState({ [event.target.name]: event.target.value });
-    }
-
-    render() {
-        return (
-            <B.FormGroup>
-                <B.Form.Label>Price</B.Form.Label>
-                {this.props.prices.map(price =>
-                    <B.Form.Row key={price.id}>
-                        <B.Col>
-                            <B.Form.Control plaintext readOnly defaultValue={price.value} />
-                        </B.Col>
-                        <B.Col>
-                            <B.Form.Control plaintext readOnly defaultValue={price.currency} />
-                        </B.Col>
-                        <B.Col>
-                            <B.Button variant="danger">Delete</B.Button>
-                        </B.Col>
-                    </B.Form.Row>)}
-                <B.Form.Row>
-                    <B.Col>
-                        <B.Form.Control type="text" name="value" value={this.state.value} onChange={this.handleChange} />
-                    </B.Col>
-                    <B.Col>
-                        <B.Form.Control as="select" name="currency" value={this.state.currency} onChange={this.handleChange}>
-                            {this.props.currencies.map(currency =>
-                                <option key={currency}>{currency}</option>)}
-                        </B.Form.Control>
-                    </B.Col>
-                    <B.Col>
-                        <B.Button onClick={() => this.props.onAdd({ value: this.state.value, currency: this.state.currency })}>Add</B.Button>
-                    </B.Col>
-                </B.Form.Row>
-            </B.FormGroup>
         );
     }
 }
@@ -586,13 +556,13 @@ class PriceFormGroup extends React.Component {
 class DeleteItemModal extends React.Component {
     render() {
         return (
-            <B.Modal show={this.props.show} onHide={() => this.props.onHide({ id: 0, brand: {name: ""}, name: "" })}>
+            <B.Modal show={this.props.show} onHide={() => this.props.onHide({ id: 0, brand: { name: "" }, name: "" })}>
                 <B.Modal.Header closeButton>
                     <B.Modal.Title>Delete item</B.Modal.Title>
                 </B.Modal.Header>
                 <B.Modal.Body>Are you sure you want to delete "{this.props.itemBrandName} {this.props.itemName}"?</B.Modal.Body>
                 <B.Modal.Footer>
-                    <B.Button onClick={() => this.props.onHide({ id: 0, brand: {name: ""}, name: "" })}>Cancel</B.Button>
+                    <B.Button onClick={() => this.props.onHide({ id: 0, brand: { name: "" }, name: "" })}>Cancel</B.Button>
                     <B.Button variant="danger" onClick={this.props.onConfirm}>Delete</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
