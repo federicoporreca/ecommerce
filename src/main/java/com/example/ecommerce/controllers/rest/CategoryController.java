@@ -80,7 +80,7 @@ public class CategoryController {
 		// if a parent category is provided and it's not empty,
 		// make sure it exists and is not a descendant of the one to update
 		if (category.getParent() != null && category.getParent().getId() != null
-				&& (categoryRepository.existsById(category.getParent().getId()) || parentValidator.isDescendantOf(category.getParent(), id))) {
+				&& (!categoryRepository.existsById(category.getParent().getId()) || parentValidator.isDescendantOf(category.getParent(), id))) {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 		// if a name is provided, set it as the new name

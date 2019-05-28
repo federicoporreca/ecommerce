@@ -328,11 +328,11 @@ class EditCategoryModal extends React.Component {
     }
 
     handleSubmit() {
-        const input = document.getElementById("editCategoryNameInput");
-        if (input.checkValidity() === true) {
+        const form = document.getElementById("editCategoryForm");
+        if (form.checkValidity() === true) {
             this.props.onSubmit();
         } else {
-            this.setState({ valid: false });
+            this.setState({ validated: true });
         }
     }
 
@@ -353,10 +353,10 @@ class EditCategoryModal extends React.Component {
                     <B.Modal.Title>Edit category</B.Modal.Title>
                 </B.Modal.Header>
                 <B.Modal.Body>
-                    <B.Form noValidate validated={this.state.validated}>
+                    <B.Form  id="editCategoryForm" noValidate validated={this.state.validated}>
                         <B.FormGroup>
                             <B.Form.Label>Name</B.Form.Label>
-                            <B.Form.Control id="editCategoryNameInput" type="text" className={!this.state.valid ? "isInvalid" : ""} name="categoryName" value={this.props.categoryName} onChange={this.handleChange} required />
+                            <B.Form.Control type="text" name="categoryName" value={this.props.categoryName} onChange={this.handleChange} required />
                             <B.Form.Control.Feedback type="invalid">
                                 Please insert a name
                             </B.Form.Control.Feedback>
