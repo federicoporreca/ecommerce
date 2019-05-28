@@ -16,7 +16,8 @@ public class CategoryPatchValidator implements ConstraintValidator<ValidCategory
 	
 	@Override
 	public boolean isValid(Category value, ConstraintValidatorContext context) {
-		return value.getId() == null && (!value.getName().isBlank() || (value.getParent() != null && categoryRepository.existsById(value.getId())));
+		// category update must provide a non-blank name or a non-null parent category (or both)
+		return value.getId() == null && (!value.getName().isBlank() || value.getParent() != null);
 	}
 
 }

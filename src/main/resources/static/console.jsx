@@ -8,6 +8,7 @@ class Console extends React.Component {
             section: "Items",
             categories: []
         };
+        this.handleChange = this.handleChange.bind(this);
         this.handleSwitch = this.handleSwitch.bind(this);
     }
 
@@ -99,15 +100,28 @@ class CategoryConsole extends React.Component {
     }
 
     handleToggleAddModal(parent) {
-        this.setState(state => ({ showAddModal: !state.showAddModal, categoryName: "", categoryParent: parent }));
+        this.setState(state => ({
+            showAddModal: !state.showAddModal,
+            categoryName: "",
+            categoryParent: parent
+        }));
     }
 
     handleToggleEditModal(category) {
-        this.setState(state => ({ showEditModal: !state.showEditModal, categoryId: category.id, categoryName: category.name, categoryParentId: category.parent.id }));
+        this.setState(state => ({
+            showEditModal: !state.showEditModal,
+            categoryId: category.id,
+            categoryName: category.name,
+            categoryParentId: category.parent.id
+        }));
     }
 
     handleToggleDeleteModal(category) {
-        this.setState(state => ({ showDeleteModal: !state.showDeleteModal, categoryId: category.id, categoryName: category.name }));
+        this.setState(state => ({
+            showDeleteModal: !state.showDeleteModal,
+            categoryId: category.id,
+            categoryName: category.name
+        }));
     }
 
     handleChange(event) {
@@ -126,9 +140,8 @@ class CategoryConsole extends React.Component {
     }
 
     handleEdit() {
-        let category = { name: this.state.categoryName };
+        let category = { name: this.state.categoryName, parent: {} };
         if (this.state.categoryParentId != 0) {
-            category.parent = {};
             category.parent.id = this.state.categoryParentId;
         }
         fetch(url + "/categories/" + this.state.categoryId, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(category) })
@@ -165,7 +178,7 @@ class CategoryConsole extends React.Component {
                     categoryParent={this.state.categoryParent}
                     onChange={this.handleChange}
                     onHide={this.handleToggleAddModal}
-                    onConfirm={this.handleAdd} />
+                    onSubmit={this.handleAdd} />
                 <EditCategoryModal
                     show={this.state.showEditModal}
                     categoryName={this.state.categoryName}
@@ -173,12 +186,12 @@ class CategoryConsole extends React.Component {
                     categories={this.props.categories}
                     onChange={this.handleChange}
                     onHide={this.handleToggleEditModal}
-                    onConfirm={this.handleEdit} />
+                    onSubmit={this.handleEdit} />
                 <DeleteCategoryModal
                     show={this.state.showDeleteModal}
                     categoryName={this.state.categoryName}
                     onHide={this.handleToggleDeleteModal}
-                    onConfirm={this.handleDelete} />
+                    onSubmit={this.handleDelete} />
             </B.Container>
         );
     }
@@ -242,24 +255,44 @@ class ButtonGroup extends React.Component {
 class AddCategoryModal extends React.Component {
     constructor(props) {
         super(props);
+        this.state = { validated: false }
         this.handleChange = this.handleChange.bind(this);
+        this.handleHide = this.handleHide.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleChange(event) {
         this.props.onChange(event);
     }
 
+    handleHide() {
+        this.setState({ validated: false });
+        this.props.onHide({});
+    }
+
+    handleSubmit() {
+        const form = document.getElementById("addCategoryForm");
+        if (form.checkValidity() === true) {
+            this.props.onSubmit();
+        } else {
+            this.setState({ validated: true });
+        }
+    }
+
     render() {
         return (
-            <B.Modal show={this.props.show} onHide={() => this.props.onHide({})}>
+            <B.Modal show={this.props.show} onHide={this.handleHide}>
                 <B.Modal.Header closeButton>
                     <B.Modal.Title>Add category</B.Modal.Title>
                 </B.Modal.Header>
                 <B.Modal.Body>
-                    <B.Form>
+                    <B.Form id="addCategoryForm" noValidate validated={this.state.validated}>
                         <B.FormGroup>
                             <B.Form.Label>Name</B.Form.Label>
-                            <B.Form.Control type="text" name="categoryName" value={this.props.categoryName} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="categoryName" value={this.props.categoryName} onChange={this.handleChange} required />
+                            <B.Form.Control.Feedback type="invalid">
+                                Please insert a name
+                            </B.Form.Control.Feedback>
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Parent</B.Form.Label>
@@ -268,8 +301,8 @@ class AddCategoryModal extends React.Component {
                     </B.Form>
                 </B.Modal.Body>
                 <B.Modal.Footer>
-                    <B.Button onClick={() => this.props.onHide({})}>Cancel</B.Button>
-                    <B.Button onClick={this.props.onConfirm}>Save</B.Button>
+                    <B.Button onClick={this.handleHide}>Cancel</B.Button>
+                    <B.Button onClick={this.handleSubmit}>Save</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
         );
@@ -279,11 +312,28 @@ class AddCategoryModal extends React.Component {
 class EditCategoryModal extends React.Component {
     constructor(props) {
         super(props);
+        this.state = { valid: false }
         this.handleChange = this.handleChange.bind(this);
+        this.handleHide = this.handleHide.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleChange(event) {
         this.props.onChange(event);
+    }
+
+    handleHide() {
+        this.setState({ validated: false });
+        this.props.onHide({});
+    }
+
+    handleSubmit() {
+        const input = document.getElementById("editCategoryNameInput");
+        if (input.checkValidity() === true) {
+            this.props.onSubmit();
+        } else {
+            this.setState({ valid: false });
+        }
     }
 
     renderChildren(category) {
@@ -303,10 +353,13 @@ class EditCategoryModal extends React.Component {
                     <B.Modal.Title>Edit category</B.Modal.Title>
                 </B.Modal.Header>
                 <B.Modal.Body>
-                    <B.Form>
+                    <B.Form noValidate validated={this.state.validated}>
                         <B.FormGroup>
                             <B.Form.Label>Name</B.Form.Label>
-                            <B.Form.Control type="text" name="categoryName" value={this.props.categoryName} onChange={this.handleChange} />
+                            <B.Form.Control id="editCategoryNameInput" type="text" className={!this.state.valid ? "isInvalid" : ""} name="categoryName" value={this.props.categoryName} onChange={this.handleChange} required />
+                            <B.Form.Control.Feedback type="invalid">
+                                Please insert a name
+                            </B.Form.Control.Feedback>
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Parent</B.Form.Label>
@@ -323,7 +376,7 @@ class EditCategoryModal extends React.Component {
                 </B.Modal.Body>
                 <B.Modal.Footer>
                     <B.Button onClick={() => this.props.onHide({ id: 0, name: "", parent: {} })}>Cancel</B.Button>
-                    <B.Button onClick={this.props.onConfirm}>Save</B.Button>
+                    <B.Button onClick={this.handleSubmit}>Save</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
         );
@@ -340,7 +393,7 @@ class DeleteCategoryModal extends React.Component {
                 <B.Modal.Body>Are you sure you want to delete "{this.props.categoryName}"?</B.Modal.Body>
                 <B.Modal.Footer>
                     <B.Button onClick={() => this.props.onHide({ id: 0, name: "" })}>Cancel</B.Button>
-                    <B.Button variant="danger" onClick={this.props.onConfirm}>Delete</B.Button>
+                    <B.Button variant="danger" onClick={this.props.onSubmit}>Delete</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
         );
@@ -353,7 +406,6 @@ class ItemConsole extends React.Component {
         this.state = {
             items: [],
             currencies: [],
-            selectedItem: { brand: {} },
             itemId: 0,
             itemBrandName: "",
             itemName: "",
@@ -367,15 +419,16 @@ class ItemConsole extends React.Component {
         }
         this.fetchItems = this.fetchItems.bind(this);
         this.handleToggleAddModal = this.handleToggleAddModal.bind(this);
+        this.handleToggleEditModal = this.handleToggleEditModal.bind(this);
         this.handleToggleDeleteModal = this.handleToggleDeleteModal.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleAdd = this.handleAdd.bind(this);
+        this.handleEdit = this.handleEdit.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
     }
 
     componentDidMount() {
         this.fetchItems();
-        this.fetchCurrencies();
     }
 
     fetchItems() {
@@ -384,18 +437,56 @@ class ItemConsole extends React.Component {
             .then(items => this.setState({ items: items }));
     }
 
-    fetchCurrencies() {
-        fetch(url + "/currencies")
-            .then(response => response.json())
-            .then(currencies => this.setState({ currencies: currencies }));
+    setItemState(item) {
+        if (item !== undefined) {
+            this.setState({
+                itemId: item.id,
+                itemBrandName: item.brand.name,
+                itemName: item.name,
+                itemPriceInEur: this.findPriceByCurrency(item.prices, "EUR"),
+                itemPriceInUsd: this.findPriceByCurrency(item.prices, "USD"),
+                itemEan: item.ean,
+                itemImageUrl: item.imageUrl,
+                itemCategoryId: item.category.id
+            })
+        } else {
+            this.setState({
+                itemId: 0,
+                itemBrandName: "",
+                itemName: "",
+                itemPriceInEur: "",
+                itemPriceInUsd: "",
+                itemEan: "",
+                itemImageUrl: "",
+                itemCategoryId: 0
+            })
+        }
     }
 
     handleToggleAddModal() {
-        this.setState(state => ({ showAddModal: !state.showAddModal }));
+        this.setItemState();
+        this.setState(state => ({ showAddModal: !state.showAddModal, }));
+    }
+
+    handleToggleEditModal(item) {
+        this.setItemState(item);
+        this.setState(state => ({ showEditModal: !state.showEditModal }));
+    }
+
+    findPriceByCurrency(prices, currency) {
+        let price = prices.find((price) => {
+            return price.currency === currency;
+        });
+        return price !== undefined ? price.value : "";
     }
 
     handleToggleDeleteModal(item) {
-        this.setState(state => ({ showDeleteModal: !state.showDeleteModal, itemId: item.id, itemBrandName: item.brand.name, itemName: item.name }));
+        this.setState(state => ({
+            showDeleteModal: !state.showDeleteModal,
+            itemId: item.id,
+            itemBrandName: item.brand.name,
+            itemName: item.name
+        }));
     }
 
     handleChange(event) {
@@ -403,6 +494,51 @@ class ItemConsole extends React.Component {
     }
 
     handleAdd() {
+        let item = {
+            brand: {
+                name: this.state.itemBrandName
+            },
+            prices: [],
+            name: this.state.itemName,
+            ean: this.state.itemEan,
+            imageUrl: this.state.itemImageUrl,
+            category: {
+                id: this.state.itemCategoryId
+            }
+        };
+        if (this.state.itemPriceInEur !== "") {
+            item.prices.push({ value: this.state.itemPriceInEur, currency: "EUR" });
+        }
+        if (this.state.itemPriceInUsd !== "") {
+            item.prices.push({ value: this.state.itemPriceInUsd, currency: "USD" });
+        }
+        fetch(url + "/items", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(item) })
+            .then(this.fetchItems);
+        this.handleToggleAddModal();
+    }
+
+    handleEdit() {
+        let item = {
+            brand: {
+                name: this.state.itemBrandName
+            },
+            prices: [],
+            name: this.state.itemName,
+            ean: this.state.itemEan,
+            imageUrl: this.state.itemImageUrl,
+            category: {
+                id: this.state.itemCategoryId
+            }
+        }
+        if (this.state.itemPriceInEur !== "") {
+            item.prices.push({ value: this.state.itemPriceInEur, currency: "EUR" });
+        }
+        if (this.state.itemPriceInUsd !== "") {
+            item.prices.push({ value: this.state.itemPriceInUsd, currency: "USD" });
+        }
+        fetch(url + "/items/" + this.state.itemId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(item) })
+            .then(this.fetchItems);
+        this.handleToggleEditModal();
     }
 
     handleDelete() {
@@ -421,12 +557,12 @@ class ItemConsole extends React.Component {
                 </B.Row>
                 <B.Row>
                     <B.Col className="mt-3">
-                        <ItemTable items={this.state.items} onDelete={this.handleToggleDeleteModal} />
+                        <ItemTable items={this.state.items} onEdit={this.handleToggleEditModal} onDelete={this.handleToggleDeleteModal} />
                     </B.Col>
                 </B.Row>
                 <AddItemModal
                     show={this.state.showAddModal}
-                    itemBrand={this.state.itemBrand}
+                    itemBrandName={this.state.itemBrandName}
                     itemName={this.state.itemName}
                     itemPriceInEur={this.state.itemPriceInEur}
                     itemPriceInUsd={this.state.itemPriceInUsd}
@@ -435,14 +571,27 @@ class ItemConsole extends React.Component {
                     itemCategoryId={this.state.itemCategoryId}
                     categories={this.props.categories}
                     onChange={this.handleChange}
-                    onConfirm={this.handleAdd}
+                    onSubmit={this.handleAdd}
                     onHide={this.handleToggleAddModal} />
+                <EditItemModal
+                    show={this.state.showEditModal}
+                    itemBrandName={this.state.itemBrandName}
+                    itemName={this.state.itemName}
+                    itemPriceInEur={this.state.itemPriceInEur}
+                    itemPriceInUsd={this.state.itemPriceInUsd}
+                    itemEan={this.state.itemEan}
+                    itemImageUrl={this.state.itemImageUrl}
+                    itemCategoryId={this.state.itemCategoryId}
+                    categories={this.props.categories}
+                    onChange={this.handleChange}
+                    onSubmit={this.handleEdit}
+                    onHide={this.handleToggleEditModal} />
                 <DeleteItemModal
                     show={this.state.showDeleteModal}
                     itemBrandName={this.state.itemBrandName}
                     itemName={this.state.itemName}
                     onHide={this.handleToggleDeleteModal}
-                    onConfirm={this.handleDelete} />
+                    onSubmit={this.handleDelete} />
             </B.Container>
         );
     }
@@ -471,7 +620,7 @@ class ItemTable extends React.Component {
                             <td>{item.imageUrl}</td>
                             <td>{item.category.name}</td>
                             <td style={{ whiteSpace: "nowrap", width: "0" }}>
-                                <B.Button size="sm" style={{ marginRight: 10 }}>Edit</B.Button>
+                                <B.Button size="sm" style={{ marginRight: 10 }} onClick={() => this.props.onEdit(item)}>Edit</B.Button>
                                 <B.Button variant="danger" size="sm" onClick={() => this.props.onDelete(item)}>Delete</B.Button>
                             </td>
                         </tr>)}
@@ -491,6 +640,16 @@ class AddItemModal extends React.Component {
         this.props.onChange(event);
     }
 
+    renderChildren(category) {
+        return (
+            category.children.map(child =>
+                <React.Fragment key={child.id}>
+                    <option value={child.id}>{child.name}</option>
+                    {this.renderChildren(child)}
+                </React.Fragment>)
+        );
+    }
+
     render() {
         return (
             <B.Modal show={this.props.show} onHide={this.props.onHide}>
@@ -501,17 +660,17 @@ class AddItemModal extends React.Component {
                     <B.Form>
                         <B.FormGroup>
                             <B.Form.Label>Brand</B.Form.Label>
-                            <B.Form.Control type="text" required name="itemBrandName" value={this.props.itemBrand} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemBrandName" value={this.props.itemBrandName} onChange={this.handleChange} />
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Name</B.Form.Label>
-                            <B.Form.Control type="text" required name="itemName" value={this.props.itemName} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemName" value={this.props.itemName} onChange={this.handleChange} />
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Price</B.Form.Label>
                             <B.Form.Row className="mb-2">
                                 <B.Col>
-                                    <B.Form.Control type="text" required className="text-right" name="itemPriceInEur" value={this.props.itemPriceInEur} onChange={this.handleChange} />
+                                    <B.Form.Control type="text" className="text-right" name="itemPriceInEur" value={this.props.itemPriceInEur} onChange={this.handleChange} />
                                 </B.Col>
                                 <B.Col>
                                     <B.Form.Control plaintext readOnly defaultValue="EUR" />
@@ -519,7 +678,7 @@ class AddItemModal extends React.Component {
                             </B.Form.Row>
                             <B.Form.Row>
                                 <B.Col>
-                                    <B.Form.Control type="text" required className="text-right" name="itemPriceInUsd" value={this.props.itemPriceInUsd} onChange={this.handleChange} />
+                                    <B.Form.Control type="text" className="text-right" name="itemPriceInUsd" value={this.props.itemPriceInUsd} onChange={this.handleChange} />
                                 </B.Col>
                                 <B.Col>
                                     <B.Form.Control plaintext readOnly defaultValue="USD" />
@@ -528,25 +687,113 @@ class AddItemModal extends React.Component {
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>EAN</B.Form.Label>
-                            <B.Form.Control type="text" required name="itemEan" value={this.props.itemEan} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemEan" value={this.props.itemEan} onChange={this.handleChange} />
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Image URL</B.Form.Label>
-                            <B.Form.Control type="text" required name="itemImageUrl" value={this.props.itemImageUrl} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemImageUrl" value={this.props.itemImageUrl} onChange={this.handleChange} />
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Category</B.Form.Label>
-                            <B.Form.Control as="select" required name="itemCategoryId" value={this.props.itemCategoryId} onChange={this.handleChange}>
+                            <B.Form.Control as="select" name="itemCategoryId" value={this.props.itemCategoryId} onChange={this.handleChange}>
                                 <option value="0"></option>
                                 {this.props.categories.map(category =>
-                                    <option key={category.id} value={category.id}>{category.name}</option>)}
+                                    <React.Fragment key={category.id}>
+                                        <option value={category.id}>{category.name}</option>
+                                        {this.renderChildren(category)}
+                                    </React.Fragment>)}
                             </B.Form.Control>
                         </B.FormGroup>
                     </B.Form>
                 </B.Modal.Body>
                 <B.Modal.Footer>
                     <B.Button onClick={this.props.onHide}>Cancel</B.Button>
-                    <B.Button type="submit">Save</B.Button>
+                    <B.Button onClick={this.props.onSubmit}>Save</B.Button>
+                </B.Modal.Footer>
+            </B.Modal>
+        );
+    }
+}
+
+class EditItemModal extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(event) {
+        this.props.onChange(event);
+    }
+
+    renderChildren(category) {
+        return (
+            category.children.map(child =>
+                <React.Fragment key={child.id}>
+                    <option value={child.id}>{child.name}</option>
+                    {this.renderChildren(child)}
+                </React.Fragment>)
+        );
+    }
+
+    render() {
+        return (
+            <B.Modal show={this.props.show} onHide={this.props.onHide}>
+                <B.Modal.Header closeButton>
+                    <B.Modal.Title>Edit item</B.Modal.Title>
+                </B.Modal.Header>
+                <B.Modal.Body>
+                    <B.Form>
+                        <B.FormGroup>
+                            <B.Form.Label>Brand</B.Form.Label>
+                            <B.Form.Control type="text" name="itemBrandName" value={this.props.itemBrandName} onChange={this.handleChange} />
+                        </B.FormGroup>
+                        <B.FormGroup>
+                            <B.Form.Label>Name</B.Form.Label>
+                            <B.Form.Control type="text" name="itemName" value={this.props.itemName} onChange={this.handleChange} />
+                        </B.FormGroup>
+                        <B.FormGroup>
+                            <B.Form.Label>Price</B.Form.Label>
+                            <B.Form.Row className="mb-2">
+                                <B.Col>
+                                    <B.Form.Control type="text" className="text-right" name="itemPriceInEur" value={this.props.itemPriceInEur} onChange={this.handleChange} />
+                                </B.Col>
+                                <B.Col>
+                                    <B.Form.Control plaintext readOnly defaultValue="EUR" />
+                                </B.Col>
+                            </B.Form.Row>
+                            <B.Form.Row>
+                                <B.Col>
+                                    <B.Form.Control type="text" className="text-right" name="itemPriceInUsd" value={this.props.itemPriceInUsd} onChange={this.handleChange} />
+                                </B.Col>
+                                <B.Col>
+                                    <B.Form.Control plaintext readOnly defaultValue="USD" />
+                                </B.Col>
+                            </B.Form.Row>
+                        </B.FormGroup>
+                        <B.FormGroup>
+                            <B.Form.Label>EAN</B.Form.Label>
+                            <B.Form.Control type="text" name="itemEan" value={this.props.itemEan} onChange={this.handleChange} />
+                        </B.FormGroup>
+                        <B.FormGroup>
+                            <B.Form.Label>Image URL</B.Form.Label>
+                            <B.Form.Control type="text" name="itemImageUrl" value={this.props.itemImageUrl} onChange={this.handleChange} />
+                        </B.FormGroup>
+                        <B.FormGroup>
+                            <B.Form.Label>Category</B.Form.Label>
+                            <B.Form.Control as="select" name="itemCategoryId" value={this.props.itemCategoryId} onChange={this.handleChange}>
+                                <option value="0"></option>
+                                {this.props.categories.map(category =>
+                                    <React.Fragment key={category.id}>
+                                        <option value={category.id}>{category.name}</option>
+                                        {this.renderChildren(category)}
+                                    </React.Fragment>)}
+                            </B.Form.Control>
+                        </B.FormGroup>
+                    </B.Form>
+                </B.Modal.Body>
+                <B.Modal.Footer>
+                    <B.Button onClick={this.props.onHide}>Cancel</B.Button>
+                    <B.Button onClick={this.props.onSubmit}>Save</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
         );
@@ -563,7 +810,7 @@ class DeleteItemModal extends React.Component {
                 <B.Modal.Body>Are you sure you want to delete "{this.props.itemBrandName} {this.props.itemName}"?</B.Modal.Body>
                 <B.Modal.Footer>
                     <B.Button onClick={() => this.props.onHide({ id: 0, brand: { name: "" }, name: "" })}>Cancel</B.Button>
-                    <B.Button variant="danger" onClick={this.props.onConfirm}>Delete</B.Button>
+                    <B.Button variant="danger" onClick={this.props.onSubmit}>Delete</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
         );

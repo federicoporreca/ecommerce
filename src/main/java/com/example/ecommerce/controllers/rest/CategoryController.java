@@ -28,24 +28,24 @@ import com.example.ecommerce.validation.groups.CategoryPatch;
 @RestController
 @RequestMapping("/categories")
 public class CategoryController {
-	
+
 	@Autowired
 	private CategoryRepository categoryRepository;
-	
+
 	@Autowired
 	private ParentCategoryValidator parentValidator;
-	
+
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public Category createCategory(@Valid @RequestBody Category category) {
 		return categoryRepository.save(category);
 	}
-	
+
 	@GetMapping
 	public Iterable<Category> getCategories() {
 		return categoryRepository.findByParentIsNull();
 	}
-	
+
 	@GetMapping("/{id}")
 	public ResponseEntity<Category> getCategory(@PathVariable Long id) {
 		Optional<Category> category = categoryRepository.findById(id);
@@ -54,34 +54,47 @@ public class CategoryController {
 		}
 		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
-	
+
 	@PutMapping("/{id}")
 	public ResponseEntity<Category> replaceCategory(@PathVariable Long id, @Valid @RequestBody Category category) {
 		if (!categoryRepository.existsById(id)) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		if (parentValidator.isDescendantOf(category.getParent(), id)) {
-			// prevent setting a category's descendant as its parent (TODO add response body)
+			// prevent setting a category's descendant as its parent (TODO add response
+			// body)
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 		category.setId(id);
 		return new ResponseEntity<>(categoryRepository.save(category), HttpStatus.OK);
 	}
-	
+
 	@PatchMapping("/{id}")
 	public ResponseEntity<Category> updateCategory(@PathVariable Long id, @Validated(CategoryPatch.class) @RequestBody Category category) {
+		// find category with id provided
 		Optional<Category> oldCategory = categoryRepository.findById(id);
+		// check that category exists
 		if (oldCategory.isEmpty()) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		if (category.getParent() != null && parentValidator.isDescendantOf(category.getParent(), id)) {
-			// prevent setting a category's descendant as its parent (TODO add response body)
+		// if a parent category is provided and it's not empty,
+		// make sure it exists and is not a descendant of the one to update
+		if (category.getParent() != null && category.getParent().getId() != null
+				&& (categoryRepository.existsById(category.getParent().getId()) || parentValidator.isDescendantOf(category.getParent(), id))) {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
+		// if a name is provided, set it as the new name
 		if (!category.getName().isBlank()) {
 			oldCategory.get().setName(category.getName());
 		}
-		oldCategory.get().setParent(categoryRepository.findById(category.getParent().getId()).get());;
+		// if an empty parent category is provided, set the new parent to null
+		if (category.getParent() != null && category.getParent().getId() == null) {
+			oldCategory.get().setParent(null);
+		}
+		// if an existing parent category is provided, set it as the new parent
+		if (category.getParent() != null && category.getParent().getId() != null) {
+			oldCategory.get().setParent(categoryRepository.findById(category.getParent().getId()).get());
+		}
 		return new ResponseEntity<>(categoryRepository.save(oldCategory.get()), HttpStatus.OK);
 	}
 

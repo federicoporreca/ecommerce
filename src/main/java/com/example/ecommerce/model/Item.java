@@ -15,6 +15,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
+import javax.validation.constraints.Pattern;
 
 import com.example.ecommerce.validation.constraints.ValidCategory;
 
@@ -28,29 +29,30 @@ public class Item {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Null
 	private Long id;
-	
-	@ManyToOne(cascade = CascadeType.PERSIST)
+
+	@ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
 	@NotNull
 	@Valid
 	private Brand brand;
-	
+
 	@NotBlank
 	private String name;
-	
+
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "item_id")
 	@NotEmpty
 	@Valid
 	private List<Price> prices;
-	
-	@NotNull // TODO replace with pattern
+
+	@NotNull
+	@Pattern(regexp = "\\d{13}")
 	private String ean;
-	
+
 	@NotNull // TODO replace with pattern or custom constraint
 	private String imageUrl;
-	
+
 	@ManyToOne
 	@ValidCategory
 	private Category category;
-	
+
 }

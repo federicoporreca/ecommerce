@@ -44,9 +44,4 @@ public class Category {
 	@JsonProperty(access = Access.READ_ONLY)
 	private List<Category> children;
 
-	@Override
-	public String toString() {
-		return "Category [id=" + id + ", name=" + name + ", children=" + children + "]";
-	}
-
 }
