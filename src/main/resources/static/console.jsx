@@ -271,8 +271,7 @@ class AddCategoryModal extends React.Component {
     }
 
     handleSubmit() {
-        const form = document.getElementById("addCategoryForm");
-        if (form.checkValidity() === true) {
+        if (document.getElementById("addCategoryForm").checkValidity()) {
             this.props.onSubmit();
         } else {
             this.setState({ validated: true });
@@ -328,8 +327,7 @@ class EditCategoryModal extends React.Component {
     }
 
     handleSubmit() {
-        const form = document.getElementById("editCategoryForm");
-        if (form.checkValidity() === true) {
+        if (document.getElementById("editCategoryForm").checkValidity()) {
             this.props.onSubmit();
         } else {
             this.setState({ validated: true });
@@ -353,7 +351,7 @@ class EditCategoryModal extends React.Component {
                     <B.Modal.Title>Edit category</B.Modal.Title>
                 </B.Modal.Header>
                 <B.Modal.Body>
-                    <B.Form  id="editCategoryForm" noValidate validated={this.state.validated}>
+                    <B.Form id="editCategoryForm" noValidate validated={this.state.validated}>
                         <B.FormGroup>
                             <B.Form.Label>Name</B.Form.Label>
                             <B.Form.Control type="text" name="categoryName" value={this.props.categoryName} onChange={this.handleChange} required />
@@ -633,11 +631,21 @@ class ItemTable extends React.Component {
 class AddItemModal extends React.Component {
     constructor(props) {
         super(props);
+        this.state = { validated: false }
         this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleChange(event) {
         this.props.onChange(event);
+    }
+
+    handleSubmit() {
+        if (document.getElementById("addItemForm").checkValidity()) {
+            this.props.onSubmit();
+        } else {
+            this.setState({ validated: true });
+        }
     }
 
     renderChildren(category) {
@@ -657,20 +665,29 @@ class AddItemModal extends React.Component {
                     <B.Modal.Title>Add item</B.Modal.Title>
                 </B.Modal.Header>
                 <B.Modal.Body>
-                    <B.Form>
+                    <B.Form id="addItemForm" noValidate validated={this.state.validated}>
                         <B.FormGroup>
                             <B.Form.Label>Brand</B.Form.Label>
-                            <B.Form.Control type="text" name="itemBrandName" value={this.props.itemBrandName} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemBrandName" value={this.props.itemBrandName} onChange={this.handleChange} required />
+                            <B.Form.Control.Feedback type="invalid">
+                                Please insert a brand
+                            </B.Form.Control.Feedback>
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Name</B.Form.Label>
-                            <B.Form.Control type="text" name="itemName" value={this.props.itemName} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemName" value={this.props.itemName} onChange={this.handleChange} required />
+                            <B.Form.Control.Feedback type="invalid">
+                                Please insert a name
+                            </B.Form.Control.Feedback>
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Price</B.Form.Label>
                             <B.Form.Row className="mb-2">
                                 <B.Col>
-                                    <B.Form.Control type="text" className="text-right" name="itemPriceInEur" value={this.props.itemPriceInEur} onChange={this.handleChange} />
+                                    <B.Form.Control type="text" className="text-right" name="itemPriceInEur" value={this.props.itemPriceInEur} onChange={this.handleChange} required pattern="\d+(\.\d+)?" />
+                                    <B.Form.Control.Feedback type="invalid">
+                                        Please insert a valid price
+                                    </B.Form.Control.Feedback>
                                 </B.Col>
                                 <B.Col>
                                     <B.Form.Control plaintext readOnly defaultValue="EUR" />
@@ -678,7 +695,10 @@ class AddItemModal extends React.Component {
                             </B.Form.Row>
                             <B.Form.Row>
                                 <B.Col>
-                                    <B.Form.Control type="text" className="text-right" name="itemPriceInUsd" value={this.props.itemPriceInUsd} onChange={this.handleChange} />
+                                    <B.Form.Control type="text" className="text-right" name="itemPriceInUsd" value={this.props.itemPriceInUsd} onChange={this.handleChange} pattern="\d+(\.\d+)?" />
+                                    <B.Form.Control.Feedback type="invalid">
+                                        Please insert a valid price or leave the field empty
+                                    </B.Form.Control.Feedback>
                                 </B.Col>
                                 <B.Col>
                                     <B.Form.Control plaintext readOnly defaultValue="USD" />
@@ -687,11 +707,17 @@ class AddItemModal extends React.Component {
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>EAN</B.Form.Label>
-                            <B.Form.Control type="text" name="itemEan" value={this.props.itemEan} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemEan" value={this.props.itemEan} onChange={this.handleChange} required pattern="\d{13}" />
+                            <B.Form.Control.Feedback type="invalid">
+                                Please insert a valid EAN-13
+                            </B.Form.Control.Feedback>
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Image URL</B.Form.Label>
-                            <B.Form.Control type="text" name="itemImageUrl" value={this.props.itemImageUrl} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemImageUrl" value={this.props.itemImageUrl} onChange={this.handleChange} required />
+                            <B.Form.Control.Feedback type="invalid">
+                                Please insert a name
+                            </B.Form.Control.Feedback>
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Category</B.Form.Label>
@@ -708,7 +734,7 @@ class AddItemModal extends React.Component {
                 </B.Modal.Body>
                 <B.Modal.Footer>
                     <B.Button onClick={this.props.onHide}>Cancel</B.Button>
-                    <B.Button onClick={this.props.onSubmit}>Save</B.Button>
+                    <B.Button onClick={this.handleSubmit}>Save</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
         );
@@ -718,11 +744,21 @@ class AddItemModal extends React.Component {
 class EditItemModal extends React.Component {
     constructor(props) {
         super(props);
+        this.state = { validated: false }
         this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleChange(event) {
         this.props.onChange(event);
+    }
+
+    handleSubmit() {
+        if (document.getElementById("editItemForm").checkValidity()) {
+            this.props.handleSubmit();
+        } else {
+            this.setState({ validated: true })
+        }
     }
 
     renderChildren(category) {
@@ -742,20 +778,29 @@ class EditItemModal extends React.Component {
                     <B.Modal.Title>Edit item</B.Modal.Title>
                 </B.Modal.Header>
                 <B.Modal.Body>
-                    <B.Form>
+                    <B.Form id="editItemForm" noValidate validated={this.state.validated}>
                         <B.FormGroup>
                             <B.Form.Label>Brand</B.Form.Label>
-                            <B.Form.Control type="text" name="itemBrandName" value={this.props.itemBrandName} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemBrandName" value={this.props.itemBrandName} onChange={this.handleChange} required />
+                            <B.Form.Control.Feedback type="invalid">
+                                Please insert a brand
+                            </B.Form.Control.Feedback>
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Name</B.Form.Label>
-                            <B.Form.Control type="text" name="itemName" value={this.props.itemName} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemName" value={this.props.itemName} onChange={this.handleChange} required />
+                            <B.Form.Control.Feedback type="invalid">
+                                Please insert a name
+                            </B.Form.Control.Feedback>
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Price</B.Form.Label>
                             <B.Form.Row className="mb-2">
                                 <B.Col>
-                                    <B.Form.Control type="text" className="text-right" name="itemPriceInEur" value={this.props.itemPriceInEur} onChange={this.handleChange} />
+                                    <B.Form.Control type="text" className="text-right" name="itemPriceInEur" value={this.props.itemPriceInEur} onChange={this.handleChange} required pattern="\d+(\.\d+)?" />
+                                    <B.Form.Control.Feedback type="invalid">
+                                        Please insert a valid price
+                                    </B.Form.Control.Feedback>
                                 </B.Col>
                                 <B.Col>
                                     <B.Form.Control plaintext readOnly defaultValue="EUR" />
@@ -763,7 +808,10 @@ class EditItemModal extends React.Component {
                             </B.Form.Row>
                             <B.Form.Row>
                                 <B.Col>
-                                    <B.Form.Control type="text" className="text-right" name="itemPriceInUsd" value={this.props.itemPriceInUsd} onChange={this.handleChange} />
+                                    <B.Form.Control type="text" className="text-right" name="itemPriceInUsd" value={this.props.itemPriceInUsd} onChange={this.handleChange} pattern="\d+(\.\d+)?" />
+                                    <B.Form.Control.Feedback type="invalid">
+                                        Please insert a valid price or leave the field empty
+                                    </B.Form.Control.Feedback>
                                 </B.Col>
                                 <B.Col>
                                     <B.Form.Control plaintext readOnly defaultValue="USD" />
@@ -772,11 +820,17 @@ class EditItemModal extends React.Component {
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>EAN</B.Form.Label>
-                            <B.Form.Control type="text" name="itemEan" value={this.props.itemEan} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemEan" value={this.props.itemEan} onChange={this.handleChange} required pattern="\d{13}" />
+                            <B.Form.Control.Feedback type="invalid">
+                                Please insert a valid EAN-13
+                            </B.Form.Control.Feedback>
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Image URL</B.Form.Label>
-                            <B.Form.Control type="text" name="itemImageUrl" value={this.props.itemImageUrl} onChange={this.handleChange} />
+                            <B.Form.Control type="text" name="itemImageUrl" value={this.props.itemImageUrl} onChange={this.handleChange} required />
+                            <B.Form.Control.Feedback type="invalid">
+                                Please insert a name
+                            </B.Form.Control.Feedback>
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Category</B.Form.Label>
@@ -792,8 +846,8 @@ class EditItemModal extends React.Component {
                     </B.Form>
                 </B.Modal.Body>
                 <B.Modal.Footer>
-                    <B.Button onClick={this.props.onHide}>Cancel</B.Button>
-                    <B.Button onClick={this.props.onSubmit}>Save</B.Button>
+                    <B.Button onClick={() => this.props.onHide()}>Cancel</B.Button>
+                    <B.Button onClick={this.handleSubmit}>Save</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
         );
