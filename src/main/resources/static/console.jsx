@@ -496,7 +496,7 @@ class ItemConsole extends React.Component {
             brand: {
                 name: this.state.itemBrandName
             },
-            prices: [],
+            prices: [{ value: this.state.itemPriceInEur, currency: "EUR" }],
             name: this.state.itemName,
             ean: this.state.itemEan,
             imageUrl: this.state.itemImageUrl,
@@ -504,9 +504,6 @@ class ItemConsole extends React.Component {
                 id: this.state.itemCategoryId
             }
         };
-        if (this.state.itemPriceInEur !== "") {
-            item.prices.push({ value: this.state.itemPriceInEur, currency: "EUR" });
-        }
         if (this.state.itemPriceInUsd !== "") {
             item.prices.push({ value: this.state.itemPriceInUsd, currency: "USD" });
         }
@@ -520,16 +517,13 @@ class ItemConsole extends React.Component {
             brand: {
                 name: this.state.itemBrandName
             },
-            prices: [],
+            prices: [{ value: this.state.itemPriceInEur, currency: "EUR" }],
             name: this.state.itemName,
             ean: this.state.itemEan,
             imageUrl: this.state.itemImageUrl,
             category: {
                 id: this.state.itemCategoryId
             }
-        }
-        if (this.state.itemPriceInEur !== "") {
-            item.prices.push({ value: this.state.itemPriceInEur, currency: "EUR" });
         }
         if (this.state.itemPriceInUsd !== "") {
             item.prices.push({ value: this.state.itemPriceInUsd, currency: "USD" });
@@ -633,11 +627,17 @@ class AddItemModal extends React.Component {
         super(props);
         this.state = { validated: false }
         this.handleChange = this.handleChange.bind(this);
+        this.handleHide = this.handleHide.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleChange(event) {
         this.props.onChange(event);
+    }
+
+    handleHide() {
+        this.setState({ validated: false });
+        this.props.onHide();
     }
 
     handleSubmit() {
@@ -660,7 +660,7 @@ class AddItemModal extends React.Component {
 
     render() {
         return (
-            <B.Modal show={this.props.show} onHide={this.props.onHide}>
+            <B.Modal show={this.props.show} onHide={this.handleHide}>
                 <B.Modal.Header closeButton>
                     <B.Modal.Title>Add item</B.Modal.Title>
                 </B.Modal.Header>
@@ -721,19 +721,22 @@ class AddItemModal extends React.Component {
                         </B.FormGroup>
                         <B.FormGroup>
                             <B.Form.Label>Category</B.Form.Label>
-                            <B.Form.Control as="select" name="itemCategoryId" value={this.props.itemCategoryId} onChange={this.handleChange}>
-                                <option value="0"></option>
+                            <B.Form.Control as="select" name="itemCategoryId" value={this.props.itemCategoryId} onChange={this.handleChange} required>
+                                <option></option>
                                 {this.props.categories.map(category =>
                                     <React.Fragment key={category.id}>
                                         <option value={category.id}>{category.name}</option>
                                         {this.renderChildren(category)}
                                     </React.Fragment>)}
                             </B.Form.Control>
+                            <B.Form.Control.Feedback type="invalid">
+                                Please select a category
+                            </B.Form.Control.Feedback>
                         </B.FormGroup>
                     </B.Form>
                 </B.Modal.Body>
                 <B.Modal.Footer>
-                    <B.Button onClick={this.props.onHide}>Cancel</B.Button>
+                    <B.Button onClick={this.handleHide}>Cancel</B.Button>
                     <B.Button onClick={this.handleSubmit}>Save</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
@@ -746,11 +749,17 @@ class EditItemModal extends React.Component {
         super(props);
         this.state = { validated: false }
         this.handleChange = this.handleChange.bind(this);
+        this.handleHide = this.handleHide.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleChange(event) {
         this.props.onChange(event);
+    }
+
+    handleHide() {
+        this.setState({ validated: false });
+        this.props.onHide();
     }
 
     handleSubmit() {
@@ -773,7 +782,7 @@ class EditItemModal extends React.Component {
 
     render() {
         return (
-            <B.Modal show={this.props.show} onHide={this.props.onHide}>
+            <B.Modal show={this.props.show} onHide={this.handleHide}>
                 <B.Modal.Header closeButton>
                     <B.Modal.Title>Edit item</B.Modal.Title>
                 </B.Modal.Header>
@@ -835,7 +844,6 @@ class EditItemModal extends React.Component {
                         <B.FormGroup>
                             <B.Form.Label>Category</B.Form.Label>
                             <B.Form.Control as="select" name="itemCategoryId" value={this.props.itemCategoryId} onChange={this.handleChange}>
-                                <option value="0"></option>
                                 {this.props.categories.map(category =>
                                     <React.Fragment key={category.id}>
                                         <option value={category.id}>{category.name}</option>
@@ -846,7 +854,7 @@ class EditItemModal extends React.Component {
                     </B.Form>
                 </B.Modal.Body>
                 <B.Modal.Footer>
-                    <B.Button onClick={() => this.props.onHide()}>Cancel</B.Button>
+                    <B.Button onClick={this.handleHide}>Cancel</B.Button>
                     <B.Button onClick={this.handleSubmit}>Save</B.Button>
                 </B.Modal.Footer>
             </B.Modal>
