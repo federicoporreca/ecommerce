@@ -5,7 +5,7 @@ class Console extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            section: "Items",
+            section: "Categories",
             categories: []
         };
         this.handleChange = this.handleChange.bind(this);
@@ -57,7 +57,7 @@ class Console extends React.Component {
         }
         return (
             <React.Fragment>
-                <Navbar brand="Console" links={["Categories", "Items"]} onSwitch={this.handleSwitch} />
+                <Navbar links={["Categories", "Items"]} section={this.state.section} onSwitch={this.handleSwitch} />
                 {console}
             </React.Fragment>
         );
@@ -67,12 +67,22 @@ class Console extends React.Component {
 class Navbar extends React.Component {
     render() {
         return (
-            <B.Navbar bg="dark" variant="dark">
-                <B.Navbar.Brand>{this.props.brand}</B.Navbar.Brand>
-                <B.Nav className="mr-auto">
-                    {this.props.links.map((link) =>
-                        <B.Nav.Link key={link} onClick={() => this.props.onSwitch(link)}>{link}</B.Nav.Link>)}
-                </B.Nav>
+            <B.Navbar bg="dark" variant="dark" expand="lg">
+                <B.Navbar.Brand>
+                    <img
+                        alt=""
+                        src="/logo-dark.png"
+                        height="30"
+                        className="d-inline-block align-top"
+                    />
+                </B.Navbar.Brand>
+                <B.Navbar.Toggle />
+                <B.Navbar.Collapse>
+                    <B.Nav className="mr-auto">
+                        {this.props.links.map((link) =>
+                            <B.Nav.Link key={link} active={link === this.props.section} onClick={() => this.props.onSwitch(link)}>{link}</B.Nav.Link>)}
+                    </B.Nav>
+                </B.Navbar.Collapse>
             </B.Navbar>
         );
     }
@@ -160,7 +170,9 @@ class CategoryConsole extends React.Component {
             <B.Container fluid>
                 <B.Row>
                     <B.Col className="mt-3">
-                        <B.Button onClick={() => this.handleToggleAddModal({})}>Add root</B.Button>
+                        <B.Button onClick={() => this.handleToggleAddModal({})}>
+                            <i className="fas fa-plus"></i>
+                        </B.Button>
                     </B.Col>
                 </B.Row>
                 <B.Row>
@@ -238,15 +250,21 @@ class ButtonGroup extends React.Component {
                     size="sm"
                     style={{ float: "right" }}
                     disabled={this.props.category.children.length !== 0}
-                    onClick={() => this.props.onDelete(this.props.category)}>Delete</B.Button>
+                    onClick={() => this.props.onDelete(this.props.category)}>
+                    <i className="fas fa-trash"></i>    
+                </B.Button>
                 <B.Button
                     size="sm"
                     style={{ float: "right", marginRight: 10 }}
-                    onClick={() => this.props.onEdit(this.props.category)}>Edit</B.Button>
+                    onClick={() => this.props.onEdit(this.props.category)}>
+                    <i className="fas fa-pen"></i>    
+                </B.Button>
                 <B.Button
                     size="sm"
                     style={{ float: "right", marginRight: 10 }}
-                    onClick={() => this.props.onAdd(this.props.category)}>Add child</B.Button>
+                    onClick={() => this.props.onAdd(this.props.category)}>
+                    <i className="fas fa-plus"></i>
+                </B.Button>
             </React.Fragment>
         );
     }
@@ -544,7 +562,9 @@ class ItemConsole extends React.Component {
             <B.Container fluid>
                 <B.Row>
                     <B.Col className="mt-3">
-                        <B.Button onClick={this.handleToggleAddModal}>Add</B.Button>
+                        <B.Button onClick={this.handleToggleAddModal}>
+                            <i className="fas fa-plus"></i>
+                        </B.Button>
                     </B.Col>
                 </B.Row>
                 <B.Row>
@@ -592,7 +612,7 @@ class ItemConsole extends React.Component {
 class ItemTable extends React.Component {
     render() {
         return (
-            <B.Table>
+            <B.Table responsive>
                 <thead>
                     <tr>
                         <th>Brand</th>
@@ -612,8 +632,12 @@ class ItemTable extends React.Component {
                             <td>{item.imageUrl}</td>
                             <td>{item.category.name}</td>
                             <td style={{ whiteSpace: "nowrap", width: "0" }}>
-                                <B.Button size="sm" style={{ marginRight: 10 }} onClick={() => this.props.onEdit(item)}>Edit</B.Button>
-                                <B.Button variant="danger" size="sm" onClick={() => this.props.onDelete(item)}>Delete</B.Button>
+                                <B.Button size="sm" style={{ marginRight: 10 }} onClick={() => this.props.onEdit(item)}>
+                                    <i className="fas fa-pen"></i>    
+                                </B.Button>
+                                <B.Button variant="danger" size="sm" onClick={() => this.props.onDelete(item)}>
+                                    <i className="fas fa-trash"></i>
+                                </B.Button>
                             </td>
                         </tr>)}
                 </tbody>
@@ -879,5 +903,4 @@ class DeleteItemModal extends React.Component {
     }
 }
 
-ReactDOM.render(
-    <Console />, document.getElementById("container"));
+ReactDOM.render(<Console />, document.getElementById("container"));

@@ -1,4 +1,4 @@
-package com.example.ecommerce.controllers.rest;
+package com.example.ecommerce.controllers;
 
 import java.util.Optional;
 
