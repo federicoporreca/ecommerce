@@ -1,7 +1,7 @@
 const B = ReactBootstrap;
 const url = "http://localhost:8080";
 
-class Console extends React.Component {
+class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -70,10 +70,9 @@ class Navbar extends React.Component {
             <B.Navbar bg="dark" variant="dark" expand="lg">
                 <B.Navbar.Brand>
                     <img
-                        alt=""
-                        src="/logo-dark.png"
+                    	alt=""
+                        src="/logo.png"
                         height="30"
-                        className="d-inline-block align-top"
                     />
                 </B.Navbar.Brand>
                 <B.Navbar.Toggle />
@@ -246,7 +245,7 @@ class ButtonGroup extends React.Component {
         return (
             <React.Fragment>
                 <B.Button
-                    variant="danger"
+                    variant="outline-danger"
                     size="sm"
                     style={{ float: "right" }}
                     disabled={this.props.category.children.length !== 0}
@@ -254,12 +253,14 @@ class ButtonGroup extends React.Component {
                     <i className="fas fa-trash"></i>    
                 </B.Button>
                 <B.Button
+                    variant="outline-primary"
                     size="sm"
                     style={{ float: "right", marginRight: 10 }}
                     onClick={() => this.props.onEdit(this.props.category)}>
                     <i className="fas fa-pen"></i>    
                 </B.Button>
                 <B.Button
+                    variant="outline-primary"
                     size="sm"
                     style={{ float: "right", marginRight: 10 }}
                     onClick={() => this.props.onAdd(this.props.category)}>
@@ -632,10 +633,10 @@ class ItemTable extends React.Component {
                             <td>{item.imageUrl}</td>
                             <td>{item.category.name}</td>
                             <td style={{ whiteSpace: "nowrap", width: "0" }}>
-                                <B.Button size="sm" style={{ marginRight: 10 }} onClick={() => this.props.onEdit(item)}>
+                                <B.Button variant="outline-primary" size="sm" style={{ marginRight: 10 }} onClick={() => this.props.onEdit(item)}>
                                     <i className="fas fa-pen"></i>    
                                 </B.Button>
-                                <B.Button variant="danger" size="sm" onClick={() => this.props.onDelete(item)}>
+                                <B.Button variant="outline-danger" size="sm" onClick={() => this.props.onDelete(item)}>
                                     <i className="fas fa-trash"></i>
                                 </B.Button>
                             </td>
@@ -903,4 +904,4 @@ class DeleteItemModal extends React.Component {
     }
 }
 
-ReactDOM.render(<Console />, document.getElementById("container"));
+ReactDOM.render(<App />, document.getElementById("container"));
