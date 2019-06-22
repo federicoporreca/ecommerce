@@ -11,9 +11,6 @@ import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 
-import lombok.Data;
-
-@Data
 @Entity
 public class Price {
 	
@@ -32,5 +29,29 @@ public class Price {
 	@Enumerated(EnumType.STRING)
 	@NotNull
 	private Currency currency;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public BigDecimal getValue() {
+		return value;
+	}
+
+	public void setValue(BigDecimal value) {
+		this.value = value;
+	}
+
+	public Currency getCurrency() {
+		return currency;
+	}
+
+	public void setCurrency(Currency currency) {
+		this.currency = currency;
+	}
 	
 }

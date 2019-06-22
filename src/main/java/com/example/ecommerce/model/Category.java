@@ -19,9 +19,6 @@ import com.example.ecommerce.validation.groups.CategoryPatch;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
-import lombok.Data;
-
-@Data
 @Entity
 @ValidCategoryPatch(groups = CategoryPatch.class)
 public class Category {
@@ -43,5 +40,37 @@ public class Category {
 	@JoinColumn(name = "parent_id")
 	@JsonProperty(access = Access.READ_ONLY)
 	private List<Category> children;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Category getParent() {
+		return parent;
+	}
+
+	public void setParent(Category parent) {
+		this.parent = parent;
+	}
+
+	public List<Category> getChildren() {
+		return children;
+	}
+
+	public void setChildren(List<Category> children) {
+		this.children = children;
+	}
 
 }

@@ -19,9 +19,6 @@ import javax.validation.constraints.Pattern;
 
 import com.example.ecommerce.validation.constraints.ValidCategory;
 
-import lombok.Data;
-
-@Data
 @Entity
 public class Item {
 
@@ -54,5 +51,61 @@ public class Item {
 	@ManyToOne
 	@ValidCategory
 	private Category category;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public Brand getBrand() {
+		return brand;
+	}
+
+	public void setBrand(Brand brand) {
+		this.brand = brand;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public List<Price> getPrices() {
+		return prices;
+	}
+
+	public void setPrices(List<Price> prices) {
+		this.prices = prices;
+	}
+
+	public String getEan() {
+		return ean;
+	}
+
+	public void setEan(String ean) {
+		this.ean = ean;
+	}
+
+	public String getImageUrl() {
+		return imageUrl;
+	}
+
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
+
+	public Category getCategory() {
+		return category;
+	}
+
+	public void setCategory(Category category) {
+		this.category = category;
+	}
 
 }
